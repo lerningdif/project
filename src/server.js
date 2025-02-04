@@ -27,19 +27,22 @@ const init = async () => {
     },
   });
 
-  await server.register({
+  await server.register([
+    {
     plugin: albums,
     options: {
     service: albumsService,
     validator: AlbumsValidator,
-
+    }
+  },
+{
     plugin: songs,
     options:{
       service: songsService,
       validator: SongsValidator,
     },
   }
-  })
+])
 
 server.ext('onPreResponse', (request, h) => {
     // mendapatkan konteks response dari request
