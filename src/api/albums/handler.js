@@ -54,7 +54,7 @@ async getAlbumsHandler() {
 
 
   async putAlbumByIdHandler(request,h) {
-    this._validator.validateAlbumsPayload(request.payload);
+    this._validator.validateAlbumPayload(request.payload);
 
     const { id } = request.params;
 
