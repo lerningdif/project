@@ -28,16 +28,14 @@ class AlbumsService {
     return result.rows[0].id;
   }
 
-  async getAlbums() {
+  async getAlbums(id) {
     const query = {
-      text: 'UPDATE albums SET name = $1, year = $2 WHERE id = $3',
-      values: [name, year, id],
+      text: 'SELECT id, name, year FROM albums WHERE id = $1',
+      values: [id],
     };
      const result = await this._pool.query('SELECT * FROM albums');
 return result.rows.map(mapAlbumToDBModel);
   }
-
-
 
   async getAlbumById(id) {
     const query = {
