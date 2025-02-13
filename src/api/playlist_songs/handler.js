@@ -36,7 +36,7 @@ class Playlist_songsHandler {
   }
 
   async getPlaylist_songsHandler(request,h) {
-    const {id: song_id} = request.auth.credentials
+    const {song_id} = request.payload
      const playlist_songs = await this._service.getPlaylist_songs(song_id);
 
     return {
