@@ -65,8 +65,11 @@ async putPlaylistByIdHandler(request, h) {
     };
   } 
 
-async deletePlaylistByIdHandler(request, h) {
+  async deletePlaylistByIdHandler(request, h) {
+  
     const { id } = request.params;
+    const {id: userId} = request.auth.credentials
+    await this._service.verifyPlaylistAccess(id, userId)
     await this._service.deletePlaylistById(id);
     return {
       status: 'success',
