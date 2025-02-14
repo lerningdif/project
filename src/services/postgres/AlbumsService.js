@@ -43,24 +43,27 @@ return result.rows.map(mapAlbumToDBModel);
             SELECT 
                 albums.id, 
                 albums.name, 
-                albums.year,
-                songs.id AS song_id, 
-                songs.title AS song_title, 
-                songs.performer AS song_performer
+                albums.year
             FROM albums 
-            LEFT JOIN songs ON albums.id = songs."albumId" 
-
             WHERE albums.id = $1
         `,
         values: [id],
     };
     const result = await this._pool.query(query);
- 
     if (!result.rows.length) {
       throw new NotFoundError('Album tidak ditemukan');
     }
- 
-    return result.rows.map(mapAlbumToDBModel)[0];
+    const album = result.rows[0 ]
+    const songQuery = {
+      text: `SELECT id, title, performer FROM songs WHERE "albumId" =  $1`,
+      values: [id]
+    }
+    const songResult = await this._pool.query(songQuery);
+    const songs = songResult.rows.map(mapAlbumToDBModel)
+    return {
+      ...album,
+      songs
+    };
   }
 
   async editAlbumById(id, { name, year }) {
