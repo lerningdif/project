@@ -5,9 +5,10 @@ const NotFoundError = require('../../exceptions/NotFoundError');
 const AuthorizationError = require('../../exceptions/AuthorizationError');
  
 class PlaylistsService {
-   constructor(collaborationService) {
+  constructor(collaborationService, cacheService) {
     this._pool = new Pool();
     this._collaborationService = collaborationService;
+    this._cacheService = cacheService;
   }
  
   async addPlaylist({name,owner}) {
@@ -27,23 +28,27 @@ class PlaylistsService {
     return result.rows[0].id;
   }
  
-  async getPlaylists(owner) {
-    const query = {
-      text: `SELECT playlists.id, playlists.name, playlists.owner as username FROM playlists
+  async getPlaylists(owner) {try {
+      const result = await this._cacheService.get(`playlists:${owner}`);
+      return JSON.parse(result);} 
+      catch (error) {
+      
+      const query = {
+      text: `SELECT playlists.id, playlists.name, users.username FROM playlists
+      JOIN users ON playlists.owner=users.id
       LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
-      WHERE playlists.owner = $1 OR collaborations.user_id = $1
-      GROUP BY playlists.id`,
+      WHERE playlists.owner = $1 OR collaborations.user_id = $1`,
       values: [owner],
     };
- 
-    const result = await this._pool.query(query);
- 
+  } const result = await this._pool.query(query);
+
+    await this._cacheService.set(`playlists:${owner}`, JSON.stringify(result.rows));
     return result.rows;
   }
  
   async getPlaylistById(id) {
     const queryPlaylist = {
-      text: "SELECT id, name FROM playlists WHERE id = $1",
+      text: 'SELECT id, name FROM playlists WHERE id = $1',
       values: [id],
     };
  
@@ -56,7 +61,7 @@ class PlaylistsService {
     const playlist = result.rows[0];
  
     const querySongsInPlaylist = {
-      text: "SELECT song_id FROM playlist_songs WHERE playlist_id = $1",
+      text: 'SELECT song_id FROM playlist_songs WHERE playlist_id = $1',
       values: [playlist.id],
     };
  
@@ -136,3 +141,4 @@ class PlaylistsService {
 }
  
 module.exports = PlaylistsService;
+ 
